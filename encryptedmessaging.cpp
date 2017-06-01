@@ -95,7 +95,32 @@ string decryptMessage(string argMessage)
 	string decryptedMessage;
 
 	//dev note: add code to decrypy argMessage into decryptedMessage
-
+	//dev note: this function is identical to the encrypt message function since the ROT13 algorithm merely shifts all
+	//ASCII values 13 spaces. I wanted to make these separate functions so that when we write main, we don't get confused on which 
+	//operation is being performed. 
+	char decryptedOutput[1000];
+	for (int i = 0; i < argMessage.size(); i++) {
+		char c = argMessage[i];
+		if (c >= 'a' && c <= 'm') {
+			c += 13;
+			decryptedOutput[i] = c;
+		}
+		else if (c >= 'n' && c <= 'z') {
+			c -= 13;
+			decryptedOutput[i] = c;
+		} 
+		else if (c >= 'A' && c <= 'M') {
+			c += 13;
+			decryptedOutput[i] = c;
+		} 
+		else if (c >= 'N' && c <= 'Z') {
+			c -= 13;
+			decryptedOutput[i] = c;
+		} 
+		else {
+			decryptedOutput[i] = c;
+		}
+	}
 	return decryptedMessage;
 }
 
@@ -125,7 +150,32 @@ string encryptString(string argInput)
 
 	//dev note add code to encrypt input
 	//set encryptedInput to an encrypted version of the argInput
-
+	
+	//dev note: building strings in C++ is confusing, so this builds an array of chars as the output encrypted string
+	//probably need to change this a little
+	char encryptedInput[1000];
+	for (int i = 0; i < argInput.size(); i++) {
+		char c = argInput[i];
+		if (c >= 'a' && c <= 'm') {
+			c += 13;
+			encryptedInput[i] = c;
+		}
+		else if (c >= 'n' && c <= 'z') {
+			c -= 13;
+			encryptedInput[i] = c;
+		} 
+		else if (c >= 'A' && c <= 'M') {
+			c += 13;
+			encryptedInput[i] = c;
+		} 
+		else if (c >= 'N' && c <= 'Z') {
+			c -= 13;
+			encryptedInput[i] = c;
+		} 
+		else {
+			encryptedInput[i] = c;
+		}
+	}
 	return encryptedInput;
 }
 
