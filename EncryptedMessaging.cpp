@@ -1,20 +1,23 @@
 /************************************************************************************
 * encryptedmessaging.cpp 
 * Authors: Matt Nutsch, Tony Quach
-* Date: 6-3-2017
+* Date: 6-4-2017
 * Description: This is a PC based C++ client for exchanging encrypted messages with
 * a web server.
 * UNDER DEVELOPMENT!
 ************************************************************************************/
 
 #include "stdafx.h"
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS //we are using deprecated functions in Winsock
+
 #include <iostream>
 #include <string>
-/*
-#include "curlpp/cURLpp.hpp"
-#include "curlpp/Easy.hpp"
-#include "curlpp/Options.hpp"
-*/
+
+#include <winsock2.h> //used to get URL content
+//#include <windows.h>
+#include <ws2tcpip.h> //used to get URL content
+#pragma comment(lib,"ws2_32.lib")
 
 using namespace std;
 
@@ -38,36 +41,81 @@ int signInUser(string * argUsername, string * argPassword)
 
 	cout << endl;
 
-	//contact the sign in API
+	//get the URL content
+	/*****************************************************************************************************************/
+	//source: http://www.cplusplus.com/forum/windows/109180/
+	WSADATA wsaData;
+
+	int i = 0;
+
+	char *host_name;
+
+	host_name = "httpbin.org"; //DEV NOTE: change this URL to API root, change port, and add POST variables for testing below
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		cout << "WSAStartup failed.\n";
+		system("pause");
+		return 1;
+	}
+
+	SOCKET Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	struct hostent *host;
+	host = gethostbyname(host_name);
+
+	SOCKADDR_IN SockAddr;
+	SockAddr.sin_port = htons(80); //HTTP
+	//SockAddr.sin_port = htons(443); //HTTPS
+	SockAddr.sin_family = AF_INET;
+	SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
+
+	cout << "Connecting...\n";
+	if (connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr)) != 0) {
+		cout << "Could not connect";
+		system("pause");
+		return 1;
+	}
+	cout << "Connected.\n";
+
+	// dev note change this to the proper URL and to a POST string with the parameters included
+	 
+	string sendbuf = "GET / HTTP/1.1\r\nHost: "; 
+	sendbuf.append(host_name);
+	sendbuf.append("\r\nConnection: close\r\n\r\n");
+
 	/*
-	try
-	{
-		// That's all that is needed to do cleanup of used resources (RAII style).
-		curlpp::Cleanup myCleanup;
-
-		// Our request to be sent.
-		curlpp::Easy myRequest;
-
-		// Set the URL.
-		myRequest.setOpt<Url>("http://www.google.com");
-
-		// Send request and get a result.
-		// By default the result goes to standard output.
-		myRequest.perform();
-
-		isSuccessful = 1;
-	}
-
-	catch (curlpp::RuntimeError & e)
-	{
-		std::cout << e.what() << std::endl;
-	}
-
-	catch (curlpp::LogicError & e)
-	{
-		std::cout << e.what() << std::endl;
-	}
+	string sendbuf = "POST /post/ recv.php HTTP / 1.1\r\n";
+	sendbuf.append("Host: ");
+	sendbuf.append(host_name);
+	sendbuf.append("\r\n");
+	sendbuf.append("User-Agent: Mozilla Firefox/4.0\r\n");
+	sendbuf.append("Content-Length: %d\r\n");
+	sendbuf.append("Content-Type: application/x-www-form-urlencoded\r\n");
+	sendbuf.append("Accept-Charset: utf-8\r\n\r\n");
 	*/
+
+	send(Socket, sendbuf.c_str(), sendbuf.length(), 0);
+	char buffer[10000];
+	string buff;
+	int nDataLength = 1;
+	while (nDataLength != 0)
+	{
+		buffer[0] = 0;
+		nDataLength = recv(Socket, buffer, 10000, 0);
+		buff.append(buffer, nDataLength);
+		//cout << buffer;
+	}
+
+	closesocket(Socket);
+	WSACleanup();
+
+	//cout << buff; //DEV NOTE: uncomment this to view the raw output from the web server
+
+	//DEV NOTE: add code here to parse the variable "buff" for the API result
+	//depending on the reply from the server, set isSuccessful to 0 for a failure.
+
+	//system("pause");
+	/*****************************************************************************************************************/
 
 	return isSuccessful;
 }
@@ -82,8 +130,80 @@ void getMessageList(string username, string password, string * messageSubjects[]
 	//send username as POST
 	//send password as POST
 	//read messageNames and MessageIds as JSON
+
+	//get the URL content
+	/*****************************************************************************************************************/
+	//source: http://www.cplusplus.com/forum/windows/109180/
+	WSADATA wsaData;
+
+	int i = 0;
+
+	char *host_name;
+
+	host_name = "httpbin.org"; //DEV NOTE: change this URL to API root, change port, and add POST variables for testing below
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		cout << "WSAStartup failed.\n";
+		system("pause");
+		//return 1; //DEV NOTE: change this line
+	}
+
+	SOCKET Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	struct hostent *host;
+	host = gethostbyname(host_name);
+
+	SOCKADDR_IN SockAddr;
+	SockAddr.sin_port = htons(80); //HTTP
+								   //SockAddr.sin_port = htons(443); //HTTPS
+	SockAddr.sin_family = AF_INET;
+	SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
+
+	cout << "Connecting...\n";
+	if (connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr)) != 0) {
+		cout << "Could not connect";
+		system("pause");
+		//return 1; //DEV NOTE: change this line
+	}
+	cout << "Connected.\n";
+
+	// dev note change this to the proper URL and to a POST string with the parameters included
+
+	string sendbuf = "GET / HTTP/1.1\r\nHost: ";
+	sendbuf.append(host_name);
+	sendbuf.append("\r\nConnection: close\r\n\r\n");
+
+	/*
+	string sendbuf = "POST /post/ recv.php HTTP / 1.1\r\n";
+	sendbuf.append("Host: ");
+	sendbuf.append(host_name);
+	sendbuf.append("\r\n");
+	sendbuf.append("User-Agent: Mozilla Firefox/4.0\r\n");
+	sendbuf.append("Content-Length: %d\r\n");
+	sendbuf.append("Content-Type: application/x-www-form-urlencoded\r\n");
+	sendbuf.append("Accept-Charset: utf-8\r\n\r\n");
+	*/
+
+	send(Socket, sendbuf.c_str(), sendbuf.length(), 0);
+	char buffer[10000];
+	string buff;
+	int nDataLength = 1;
+	while (nDataLength != 0)
+	{
+		buffer[0] = 0;
+		nDataLength = recv(Socket, buffer, 10000, 0);
+		buff.append(buffer, nDataLength);
+		//cout << buffer;
+	}
+
+	closesocket(Socket);
+	WSACleanup();
+
+	//cout << buff; //DEV NOTE: uncomment this to view the raw output from the web server
+
+	/*****************************************************************************************************************/
 	
-	//parse JSON 
+	//DEV NOTE: parse JSON 
 	//set messageSubjects = array of strings
 	//set messageIds = array of ints
 
@@ -139,7 +259,79 @@ string getMessage(string username, string password, int messageId)
 	//send messageId as POST
 	//read string from the web server
 
-	//decrypt the message
+	//get the URL content
+	/*****************************************************************************************************************/
+	//source: http://www.cplusplus.com/forum/windows/109180/
+	WSADATA wsaData;
+
+	int i = 0;
+
+	char *host_name;
+
+	host_name = "httpbin.org"; //DEV NOTE: change this URL to API root, change port, and add POST variables for testing below
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		cout << "WSAStartup failed.\n";
+		system("pause");
+		//return 1; //DEV NOTE: change this line
+	}
+
+	SOCKET Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	struct hostent *host;
+	host = gethostbyname(host_name);
+
+	SOCKADDR_IN SockAddr;
+	SockAddr.sin_port = htons(80); //HTTP
+								   //SockAddr.sin_port = htons(443); //HTTPS
+	SockAddr.sin_family = AF_INET;
+	SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
+
+	cout << "Connecting...\n";
+	if (connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr)) != 0) {
+		cout << "Could not connect";
+		system("pause");
+		//return 1; //DEV NOTE: change this line
+	}
+	cout << "Connected.\n";
+
+	// dev note change this to the proper URL and to a POST string with the parameters included
+
+	string sendbuf = "GET / HTTP/1.1\r\nHost: ";
+	sendbuf.append(host_name);
+	sendbuf.append("\r\nConnection: close\r\n\r\n");
+
+	/*
+	string sendbuf = "POST /post/ recv.php HTTP / 1.1\r\n";
+	sendbuf.append("Host: ");
+	sendbuf.append(host_name);
+	sendbuf.append("\r\n");
+	sendbuf.append("User-Agent: Mozilla Firefox/4.0\r\n");
+	sendbuf.append("Content-Length: %d\r\n");
+	sendbuf.append("Content-Type: application/x-www-form-urlencoded\r\n");
+	sendbuf.append("Accept-Charset: utf-8\r\n\r\n");
+	*/
+
+	send(Socket, sendbuf.c_str(), sendbuf.length(), 0);
+	char buffer[10000];
+	string buff;
+	int nDataLength = 1;
+	while (nDataLength != 0)
+	{
+		buffer[0] = 0;
+		nDataLength = recv(Socket, buffer, 10000, 0);
+		buff.append(buffer, nDataLength);
+		//cout << buffer;
+	}
+
+	closesocket(Socket);
+	WSACleanup();
+
+	//cout << buff; //DEV NOTE: uncomment this to view the raw output from the web server
+
+	/*****************************************************************************************************************/
+
+	//DEV NOTE: decrypt the message
 	//set message to the decrypted message
 
 	return message;
@@ -247,6 +439,81 @@ int sendMessageToServer(string username, string password, string message, string
 	//send recipient as POST
 	//set isSendSuccessful = 1 if successful
 
+	/*****************************************************************************************************************/
+	//source: http://www.cplusplus.com/forum/windows/109180/
+	WSADATA wsaData;
+
+	int i = 0;
+
+	char *host_name;
+
+	host_name = "httpbin.org"; //DEV NOTE: change this URL to API root, change port, and add POST variables for testing below
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		cout << "WSAStartup failed.\n";
+		system("pause");
+		return 1;
+	}
+
+	SOCKET Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	struct hostent *host;
+	host = gethostbyname(host_name);
+
+	SOCKADDR_IN SockAddr;
+	SockAddr.sin_port = htons(80); //HTTP
+								   //SockAddr.sin_port = htons(443); //HTTPS
+	SockAddr.sin_family = AF_INET;
+	SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
+
+	cout << "Connecting...\n";
+	if (connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr)) != 0) {
+		cout << "Could not connect";
+		system("pause");
+		return 1;
+	}
+	cout << "Connected.\n";
+
+	// dev note change this to the proper URL and to a POST string with the parameters included
+
+	string sendbuf = "GET / HTTP/1.1\r\nHost: ";
+	sendbuf.append(host_name);
+	sendbuf.append("\r\nConnection: close\r\n\r\n");
+
+	/*
+	string sendbuf = "POST /post/ recv.php HTTP / 1.1\r\n";
+	sendbuf.append("Host: ");
+	sendbuf.append(host_name);
+	sendbuf.append("\r\n");
+	sendbuf.append("User-Agent: Mozilla Firefox/4.0\r\n");
+	sendbuf.append("Content-Length: %d\r\n");
+	sendbuf.append("Content-Type: application/x-www-form-urlencoded\r\n");
+	sendbuf.append("Accept-Charset: utf-8\r\n\r\n");
+	*/
+
+	send(Socket, sendbuf.c_str(), sendbuf.length(), 0);
+	char buffer[10000];
+	string buff;
+	int nDataLength = 1;
+	while (nDataLength != 0)
+	{
+		buffer[0] = 0;
+		nDataLength = recv(Socket, buffer, 10000, 0);
+		buff.append(buffer, nDataLength);
+		//cout << buffer;
+	}
+
+	closesocket(Socket);
+	WSACleanup();
+
+	//cout << buff; //DEV NOTE: uncomment this to view the raw output from the web server
+
+	//DEV NOTE: add code here to parse the variable "buff" for the API result
+	//depending on the reply from the server, set isSendSuccessful to 0 for a failure.
+
+	//system("pause");
+	/*****************************************************************************************************************/
+
 	return isSendSuccessful;
 }
 
@@ -277,8 +544,8 @@ int main()
 
 	isSignedIn = signInUser(&username, &password);
 
-	cout << "welcome " << username << endl;
-	cout << "your password is " << password << endl;
+	cout << "Welcome " << username << "." << endl << endl;
+	//cout << "your password is " << password << endl;
 
 	bool continueLoop = 1;
 	while (continueLoop == 1)
