@@ -1,6 +1,7 @@
 #ifndef.io - ec2user
 
 sudo adduser username
+
 sudo passwd username
 
 #Add user to sudoers file through visudo and add username ALL=(ALL:ALL) NOPASSWD:ALL
@@ -18,4 +19,5 @@ sudo service sshd restart
 #Test login and sudo su for root
 
 ssh username@address
+
 sudo su
