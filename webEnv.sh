@@ -4,7 +4,7 @@ echo "-->Updating Amazon Linux"
 sudo yum -y update
 
 echo "-->Installing required packages"
-sudo yum install -y httpd24 php70 mysql56-server php70-mysqlnd mod24_ssl
+sudo yum install -y httpd24 php70 mysql56-server php70-mysqlnd mod24_ssl fail2ban
 
 echo "-->Starting apache and configuring auto-start"
 sudo service httpd start
@@ -35,6 +35,11 @@ echo "-->Downloading certbot for LetsEncrypt and configuring permissions"
 wget https://dl.eff.org/certbot-auto
 chmod a+x certbot-auto
 
+echo "-->Setting up fail2ban with default configuration"
+cd /etc/fail2ban
+sudo cp jail.conf jail.local
+sudo service fail2ban restart
+
 echo "******************************************"
 echo "Configure mysql with the following command"
 echo "sudo mysql_secure installation"
@@ -47,6 +52,6 @@ echo "/etc/letsencrypt/live/example.com/cert.pem"
 echo "/etc/letsencrypt/live/example.com/privkey.pem"
 echo "/etc/letsencrypt/live/example.com/fullchain.pem"
 echo "******************************************"
-
-
+echo "Configure fail2ban at cd/etc/fail2ban/jail.local"
+echo "******************************************"
 
