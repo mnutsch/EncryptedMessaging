@@ -16,9 +16,9 @@ Shawn Harmsen
 Things to do:
 
 Add code to the encyrptedmessaging.cpp client to:
-1. create a public - private key pair (see placeholders in functions)
-2. encrypt and decrypt text using a private key (see placeholders in functions)
-3. call the various API's (see placeholders in functions)
+1. Create a public - private key pair (see placeholders in functions)
+2. Encrypt and decrypt text using a private key (see placeholders in functions)
+3. Call the various API's (see placeholders in functions)
 
 Set up a web server.
 
