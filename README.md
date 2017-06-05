@@ -24,7 +24,7 @@ Set up a web server.
 
 Create API's on the webserver:
 things we need the server API's to do: 
-1. receives username password sign in API validates user name and password are correct 
-2. return a JSON string of message names and message id numbers 
-3. gets a message id, sends back the encrypted message body 
-4. receives a username password and public key, API should store the key in the database
+1. Sign in users: API validates user name and password are correct after receiving username & password 
+2. Return a JSON string containing message names and message id numbers.
+3. Get a message id, then send back the encrypted message text.
+4. Store a public key in the database after receiving a username, password and public key.
